@@ -1,0 +1,196 @@
+Step-by-Step Description
+Advanced Time Series Forecasting with Uncertainty Quantification
+1. Project Objective
+
+The objective of this project is to build an advanced time-series forecasting model capable of:
+
+Predicting future values of a target time series
+
+Quantifying forecast uncertainty using quantile regression
+
+Comparing neural network performance against a classical statistical baseline
+
+The model forecasts future changes in a multivariate time series using an LSTM neural network and provides prediction intervals instead of point estimates.
+
+2. Environment and Configuration
+
+Key hyperparameters and system settings are defined:
+
+Sequence length (SEQ_LEN): 48 past time steps used as input
+
+Batch size: 64
+
+Epochs: 20
+
+Learning rate: 0.001
+
+Quantiles: 0.1, 0.5, 0.9 (lower bound, median, upper bound)
+
+Device selection: Automatically uses GPU (CUDA) if available, otherwise CPU
+
+Random seeds are fixed to ensure reproducibility.
+
+3. Synthetic Data Generation
+
+A multivariate synthetic dataset is created to simulate real-world temporal patterns:
+
+x1: Daily seasonality using a sine function
+
+x2: Weekly seasonality using a cosine function
+
+x3: Long-term upward trend
+
+Random Gaussian noise is added to each series to introduce variability.
+This results in a realistic time-series dataset with seasonal and trend components.
+
+4. Data Preprocessing
+4.1 Differencing
+
+First-order differencing is applied to remove trends and stabilize the mean, making the data more stationary.
+
+4.2 Normalization
+
+Min-Max scaling is used to normalize all features to the range [0, 1], improving neural network training stability and convergence.
+
+5. Dataset Construction
+
+A custom PyTorch Dataset class is implemented:
+
+Each sample consists of:
+
+Input: A sequence of 48 time steps with 3 features
+
+Target: The next time step value of the primary variable (x1)
+
+The dataset is split into:
+
+80% training data
+
+20% testing data
+
+DataLoaders are used to efficiently batch and shuffle data during training.
+
+6. Quantile Loss Function (Pinball Loss)
+
+To model uncertainty, the Pinball Loss is implemented:
+
+It penalizes over- and under-prediction asymmetrically
+
+Separate losses are computed for each quantile (0.1, 0.5, 0.9)
+
+The final loss is the mean across all quantiles
+
+This enables the model to learn full conditional distributions instead of only mean predictions.
+
+7. Model Architecture
+
+An LSTM-based neural network is designed:
+
+Input layer: Multivariate time-series sequences
+
+LSTM layer: 64 hidden units to capture temporal dependencies
+
+Fully connected output layer: Produces three outputs corresponding to the specified quantiles
+
+Only the final hidden state is used for prediction.
+
+8. Model Training
+
+The model is trained using:
+
+Adam optimizer
+
+Pinball loss
+
+Mini-batch gradient descent
+
+During each epoch:
+
+Sequences are passed through the LSTM
+
+Quantile predictions are generated
+
+Pinball loss is computed
+
+Gradients are backpropagated
+
+Model parameters are updated
+
+Average training loss is printed for each epoch to monitor convergence.
+
+9. Model Evaluation
+
+After training, the model is evaluated on unseen test data.
+
+9.1 Point Forecast Metrics
+
+Using the median (0.5 quantile):
+
+RMSE (Root Mean Squared Error)
+
+MAE (Mean Absolute Error)
+
+9.2 Probabilistic Metrics
+
+Pinball score for each quantile
+
+Prediction interval coverage, measuring how often true values fall within the 10%–90% interval
+
+These metrics assess both accuracy and uncertainty quality.
+
+10. Baseline Model Comparison
+
+A classical Holt-Winters Exponential Smoothing model is trained using:
+
+Additive trend
+
+No seasonal component
+
+The baseline model forecasts the same test period and is evaluated using RMSE and MAE.
+This comparison highlights the benefits of deep learning for complex temporal patterns.
+
+11. Calibration Analysis
+
+A calibration check is performed:
+
+The predicted median distribution is compared with observed values
+
+Expected quantiles are matched against empirical coverage
+
+Well-calibrated predictions indicate reliable uncertainty estimation.
+
+12. Final Output
+
+The project outputs:
+
+Training loss per epoch
+
+Neural network performance metrics
+
+Baseline model metrics
+
+Calibration statistics
+
+Successful execution confirmation
+
+Project Summary
+
+This project presents an advanced probabilistic time-series forecasting framework using an LSTM neural network with quantile regression. Unlike traditional point forecasting, the model produces prediction intervals, enabling uncertainty-aware decision-making.
+
+The workflow includes:
+
+Synthetic multivariate data generation
+
+Stationarity preprocessing and normalization
+
+Sequence modeling with LSTM
+
+Quantile loss optimization
+
+Probabilistic evaluation and calibration
+
+Benchmarking against a classical statistical method
+
+Results demonstrate that the LSTM-based approach not only achieves strong predictive accuracy but also provides well-calibrated uncertainty estimates, outperforming the baseline Exponential Smoothing model on complex temporal dynamics.
+
+This approach is suitable for real-world forecasting applications such as energy demand prediction, finance, and sensor-based monitoring systems where understanding uncertainty is critical.
